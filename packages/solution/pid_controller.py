@@ -93,10 +93,11 @@ class PIDController():
         p = self.kp * e
         e_int_c = self.prev_int_offset + e * delta_t
         self.prev_int_offset = e_int_c
-        if e_int_c > 0.5:
-               e_int_c = 0.5
-        elif e_int_c < -0.5:
-                e_int_c = -0.5
+        if e_int_c > 1.0:
+               e_int_c = 1.0
+        elif e_int_c < -1.0:
+                e_int_c = -1.0
+        self.prev_int_offset = e_int_c        
         i = self.ki * e_int_c
         if self.n > 1:
            e_d = (e - self.prev_e_offset)/delta_t
@@ -104,8 +105,6 @@ class PIDController():
             e_d = 0
         self.prev_e_offset = e
         d = self.kd * e_d
-        print(f"Current {y_curr}")
-        print(f"Error {e}")
         omega = p + i + d 
         return v, omega
 
