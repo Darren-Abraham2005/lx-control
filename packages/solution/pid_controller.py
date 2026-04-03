@@ -11,6 +11,7 @@ class PIDController():
         self.prev_e_offset = 0.0
         self.prev_int_heading = 0.0
         self.prev_int_offset = 0.0
+        self.n = 0
 
         self.kp = 0.0
         self.ki = 0.0
@@ -44,7 +45,19 @@ class PIDController():
         # should be the one to update them also.
 
         v = v_ref
-        omega = np.random.uniform(-8.0, 8.0)
+        e = theta_ref - theta_curr
+        self.n = self.n + 1
+        p = self.kp * e
+        e_int_c = self.prev_int_heading + e * delta_t
+        self.prev_int_heading = e_int_c
+        i = self.ki * e_int_c
+        if self.n > 1:
+            e_d = (e- self.prev_e_heading)/delta_t
+        else:
+            e_d = 0
+        self.prev_e_heading = e
+        d = self.kd * e_d
+        omega = p + i + d
         return v, omega
 
     def OffsetControl(self,
@@ -73,8 +86,27 @@ class PIDController():
         # self.prev_e_offset the previous error. But note that you
         # should be the one to update them also.
 
-        omega = np.random.uniform(-8.0, 8.0)
+        
         v = v_ref
+        e = y_ref - y_curr
+        self.n = self.n + 1
+        p = self.kp * e
+        e_int_c = self.prev_int_offset + e * delta_t
+        self.prev_int_offset = e_int_c
+        if e_int_c > 0.5:
+               e_int_c = 0.5
+        elif e_int_c < -0.5:
+                e_int_c = -0.5
+        i = self.ki * e_int_c
+        if self.n > 1:
+           e_d = (e - self.prev_e_offset)/delta_t
+        else:
+            e_d = 0
+        self.prev_e_offset = e
+        d = self.kd * e_d
+        print(f"Current {y_curr}")
+        print(f"Error {e}")
+        omega = p + i + d 
         return v, omega
 
     def SetGains(self, kp: float, ki: float, kd: float) -> None:
